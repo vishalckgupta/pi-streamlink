@@ -1,0 +1,8 @@
+# GStreamer + its Python bindings (PyGObject) come from apt, not pip, on Raspberry Pi OS:
+#   sudo apt install python3-gi gir1.2-gst-plugins-base-1.0 \
+#        gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+#        gstreamer1.0-libcamera libcamera-apps
+#
+# Nothing else is required for the tx/rx skeleton yet.
+
+
