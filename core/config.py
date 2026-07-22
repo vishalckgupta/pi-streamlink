@@ -17,17 +17,22 @@ class NetworkConfig:
 
 @dataclass(frozen=True)
 class CaptureConfig:
-    width: int = 1280
-    height: int = 720
+    width: int = 640
+    height: int = 480
     framerate: int = 30
     device: str = "/dev/video0"
 
 
 @dataclass(frozen=True)
 class EncodeConfig:
-    initial_bitrate_kbps: int = 2000     # starting point, policy.py adjusts from here
+    # "sw" = x264enc (software, works everywhere). "hw" = v4l2h264enc
+    # (bcm2835-codec hardware encode) — currently broken on this Pi 3B's
+    # kernel (6.12.62+rpt-rpi-v8), see bus_handler error trace from 2026-07-22.
+    # Flip back to "hw" once/if that's resolved upstream.
+    backend: str = "sw"
+    initial_bitrate_kbps: int = 1000     # starting point, policy.py adjusts from here
     min_bitrate_kbps: int = 300
-    max_bitrate_kbps: int = 4000
+    max_bitrate_kbps: int = 2500
     keyframe_interval_s: int = 2
 
 
