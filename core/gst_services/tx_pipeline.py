@@ -128,10 +128,17 @@ class TxPipeline:
             sources = session.get_property("sources")
             for src in sources:
                 stats = src.get_property("stats")
-                if stats and stats.get_value("is-sender") is False:
-                    # this is a remote source giving us receiver-report data
-                    self._latest_stats["jitter"] = stats.get_value("jitter") or 0
-                    # 'octets-received' etc. are also available if needed
+                if not stats or not stats.has_field("internal") or not stats.get_value("internal"):
+                    continue
+                # 'internal' = this source represents us (the sender).
+                # rb-* fields are populated once the peer's first RR arrives.
+                if stats.has_field("rb-fractionlost"):
+                    # rb-fractionlost is 0-255 per RFC 3550, normalize to 0.0-1.0
+                    self._latest_stats["loss_fraction"] = stats.get_value("rb-fractionlost") / 256.0
+                if stats.has_field("rb-jitter"):
+                    self._latest_stats["jitter"] = stats.get_value("rb-jitter")
+                if stats.has_field("rb-round-trip"):
+                    self._latest_stats["rtt"] = stats.get_value("rb-round-trip")
         except Exception as exc:
             log.debug("RTCP stats poll skipped: %s", exc)
         return True  # keep the GLib timeout running

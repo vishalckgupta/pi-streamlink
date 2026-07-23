@@ -27,9 +27,12 @@ log = logging.getLogger("run_tx")
 
 def adaptive_tick(tx: TxPipeline, policy: BitratePolicy):
     stats = tx.get_rtcp_stats()
-    # NOTE: loss_fraction wiring is a stub until we confirm the exact stats
-    # field names against your GStreamer version on-device (see tx_pipeline.py)
     loss_fraction = stats.get("loss_fraction", 0.0)
+    log.info(
+        "RTCP stats: loss=%.1f%% jitter=%s rtt=%s | current bitrate=%d kbps",
+        loss_fraction * 100, stats.get("jitter"), stats.get("rtt"),
+        policy.current_kbps,
+    )
     new_bitrate = policy.decide(loss_fraction)
     tx.set_bitrate(new_bitrate)
     return True  # keep GLib timeout running
