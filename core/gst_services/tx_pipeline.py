@@ -87,12 +87,12 @@ class TxPipeline:
 
         link_many(src, caps_filter, convert, self._encoder, parse, payload)
 
+        self._rtpbin.connect(
+            "pad-added", self._on_rtpbin_pad_added, rtp_sink, rtcp_sink
+        )
         # payload -> rtpbin.send_rtp_sink_0 -> rtp_sink
         payload.get_static_pad("src").link(
             self._rtpbin.get_request_pad("send_rtp_sink_0")
-        )
-        self._rtpbin.connect(
-            "pad-added", self._on_rtpbin_pad_added, rtp_sink, rtcp_sink
         )
 
         # rtpbin RTCP send -> rtcp_sink handled in pad-added above
@@ -140,13 +140,17 @@ class TxPipeline:
         return dict(self._latest_stats)
 
     def _apply_bitrate(self, kbps: int):
-        # v4l2h264enc exposes bitrate via extra-controls (v4l2 control interface)
-        self._encoder.set_property(
-            "extra-controls",
-            Gst.Structure.new_from_string(
-                f"controls,video_bitrate={kbps * 1000}"
-            ),
-        )
+        if self._backend == "hw":
+            # v4l2h264enc exposes bitrate via extra-controls (v4l2 control interface)
+            self._encoder.set_property(
+                "extra-controls",
+                Gst.Structure.new_from_string(
+                    f"controls,video_bitrate={kbps * 1000}"
+                ),
+            )
+        else:
+            # x264enc's bitrate property is already in kbit/s
+            self._encoder.set_property("bitrate", kbps)
 
     def set_bitrate(self, kbps: int):
         kbps = max(self._enc.min_bitrate_kbps, min(self._enc.max_bitrate_kbps, kbps))
