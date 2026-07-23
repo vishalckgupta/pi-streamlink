@@ -9,7 +9,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class NetworkConfig:
-    rx_host: str = "192.168.1.50"   # Pi 4 IP — set to your actual receiver address
+    tx_host: str = "192.168.1.31"   # Pi 3B IP — used by the receiver to send RTCP RR back
+    rx_host: str = "192.168.1.198"   # Pi 4 IP — set to your actual receiver address
     rtp_port: int = 5000            # video RTP
     rtcp_send_port: int = 5001      # tx -> rx RTCP SR
     rtcp_recv_port: int = 5002      # rx -> tx RTCP RR (loss/jitter feedback)
